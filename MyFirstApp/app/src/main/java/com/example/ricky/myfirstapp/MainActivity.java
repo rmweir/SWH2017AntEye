@@ -4,6 +4,7 @@ package com.example.ricky.myfirstapp;
 import com.microsoft.projectoxford.face.*;
 import com.microsoft.projectoxford.face.contract.*;
 
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -52,7 +53,7 @@ private ProgressDialog detectionProgressDialog;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final EditText editText = (EditText) findViewById(R.id.editText);
+
 
         //Printout for radio button values(buttsex)
         View viewbutt = findViewById(R.id.rdioButtonSex);
@@ -68,18 +69,7 @@ private ProgressDialog detectionProgressDialog;
             @Override
             public void onClick(View v) {
 
-                int selectedId = rdioButtonSex.getCheckedRadioButtonId();
-                rdioButtonSex = (RadioGroup) findViewById(R.id.rdioButtonSex);
-                radioSexButton = (RadioButton) findViewById(selectedId);
 
-                int selectedId2 = contactChoice.getCheckedRadioButtonId();
-                contactChoice = (RadioGroup) findViewById(R.id.contactChoice);
-                contactButton = (RadioButton) findViewById(selectedId2);
-
-
-                String test0 = editText.getText().toString();
-                String test = (String)radioSexButton.getText().toString().toLowerCase();
-                String filename = test0 + test;
                 Intent gallIntent = new Intent(Intent.ACTION_GET_CONTENT);
                 gallIntent.setType("image/*");
                 startActivityForResult(Intent.createChooser(gallIntent, "Select Picture"), PICK_IMAGE);
@@ -156,27 +146,41 @@ private ProgressDialog detectionProgressDialog;
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
         byte[] photoData = outputStream.toByteArray();
+
         ByteArrayInputStream inputStream =
                 new ByteArrayInputStream(photoData);
         ByteArrayInputStream inputMissing =
                 new ByteArrayInputStream(photoData);
+        int selectedId = rdioButtonSex.getCheckedRadioButtonId();
+        rdioButtonSex = (RadioGroup) findViewById(R.id.rdioButtonSex);
+        radioSexButton = (RadioButton) findViewById(selectedId);
+
+        int selectedId2 = contactChoice.getCheckedRadioButtonId();
+        contactChoice = (RadioGroup) findViewById(R.id.contactChoice);
+        contactButton = (RadioButton) findViewById(selectedId2);
+
+        final EditText editText = (EditText) findViewById(R.id.editText);
+        String test0 = editText.getText().toString();
+        String test = radioSexButton.getText().toString().toLowerCase();
+        final String lostname = "lostboyz/" + test0 + test + ".jpg";
+
         AsyncTask<InputStream, Object, SimilarFace[]> detectTask =
                 new AsyncTask<InputStream, Object, SimilarFace[]>() {
                     @Override
                     protected SimilarFace[] doInBackground(InputStream... params) {
                         // faces to search through (from gallery)
-                        ArrayList<UUID> searchFacesList = new ArrayList<UUID>();
+                        ArrayList<UUID> searchFacesList = new ArrayList<>();
 
                         // For proof of concept purposes, fetch from a phony database
                         // (image file on the disk)
                         // In the future, possibly fetch from a government database of missing person
-                        InputStream missingPhoto = params[0]; // TODO: actually get from database
 
                         Face missingFace = null;
 
-                        publishProgress("Searching Database...");
-
                         try {
+                            InputStream missingPhoto = (getAssets()).open(lostname);
+                            publishProgress("Searching Database...");
+
                             Face[] missingFaces = faceServiceClient.detect(
                                     missingPhoto,
                                     true,
@@ -229,7 +233,7 @@ private ProgressDialog detectionProgressDialog;
                             // For now, tell the user
                             // In the future, send data to a government agency (FBI, local police, etc)
                             if (matches.length > 0) {
-                                publishProgress("Possible Matches Found! (Send to External)");
+                                publishProgress("Possible Matches Found!");
                                 return matches;
                             } else {
                                 publishProgress("No Matches Found.");
@@ -258,7 +262,7 @@ private ProgressDialog detectionProgressDialog;
 
                     @Override
                     protected void onPostExecute(SimilarFace[] result) {
-                        detectionProgressDialog.dismiss();
+                        //detectionProgressDialog.dismiss();
                     }
                 };
         detectTask.execute(inputMissing, inputStream);
