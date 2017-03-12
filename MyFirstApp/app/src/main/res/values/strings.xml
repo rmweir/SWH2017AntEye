@@ -1,4 +1,11 @@
 <resources>
     <string name="app_name">MyFirstApp</string>
     <string name="action_settings">Settings</string>
+    <string name="title_activity_main2">Main2Activity</string>
+    <string name="rbm">M</string>
+    <string name="rbf">F</string>
+    <string name="pc">Phone</string>
+    <string name="txc">Text</string>
+    <string name="next">Next</string>
+    <string name="phoption">(Optional) Please enter Phone #</string>
 </resources>

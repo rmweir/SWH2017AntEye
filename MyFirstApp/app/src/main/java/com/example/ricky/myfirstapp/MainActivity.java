@@ -23,24 +23,47 @@ import android.graphics.*;
 import android.widget.*;
 import android.provider.*;
 
-import static android.R.attr.strokeWidth;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+
 
 
 public class MainActivity extends AppCompatActivity {
     private FaceServiceClient faceServiceClient =
             new FaceServiceRestClient("3d2df18ce0d942149afe3fb6d2ee75c4");
     private final int PICK_IMAGE = 1;
+    private RadioGroup rdioButtonSex;
+    private RadioButton radioSexButton;
+    private RadioGroup contactChoice;
+    private RadioButton contactButton;
+    private Button button1;
+
 private ProgressDialog detectionProgressDialog;
-  //  private FaceServiceClient faceServiceClient = new FaceServiceRestClient("f18cc7f9302d43dd84b34fd25755882a");
+   // private FaceServiceClient faceServiceClient = new FaceServiceRestClient("f18cc7f9302d43dd84b34fd25755882a");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Button button1 = (Button)findViewById(R.id.button1);
+        View viewbutt = findViewById(R.id.rdioButtonSex);
+        rdioButtonSex = (RadioGroup)viewbutt;
+        contactChoice = (RadioGroup) findViewById(R.id.contactChoice);
+        button1 = (Button)findViewById(R.id.button1);
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                int selectedId = rdioButtonSex.getCheckedRadioButtonId();
+                rdioButtonSex = (RadioGroup) findViewById(R.id.rdioButtonSex);
+                radioSexButton = (RadioButton) findViewById(selectedId);
+
+                int selectedId2 = contactChoice.getCheckedRadioButtonId();
+                contactChoice = (RadioGroup) findViewById(R.id.contactChoice);
+                contactButton = (RadioButton) findViewById(selectedId2);
+                String test = (String)radioSexButton.getText();
+
                 Intent gallIntent = new Intent(Intent.ACTION_GET_CONTENT);
                 gallIntent.setType("image/*");
                 startActivityForResult(Intent.createChooser(gallIntent, "Select Picture"), PICK_IMAGE);
