@@ -14,6 +14,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import java.io.*;
+import java.util.UUID;
+
 import android.app.*;
 import android.content.*;
 import android.net.*;
@@ -30,8 +32,8 @@ public class MainActivity extends AppCompatActivity {
     private FaceServiceClient faceServiceClient =
             new FaceServiceRestClient("3d2df18ce0d942149afe3fb6d2ee75c4");
     private final int PICK_IMAGE = 1;
-private ProgressDialog detectionProgressDialog;
-  //  private FaceServiceClient faceServiceClient = new FaceServiceRestClient("f18cc7f9302d43dd84b34fd25755882a");
+    private ProgressDialog detectionProgressDialog;
+    //  private FaceServiceClient faceServiceClient = new FaceServiceRestClient("f18cc7f9302d43dd84b34fd25755882a");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,9 +140,23 @@ private ProgressDialog detectionProgressDialog;
 
                                 return null;
                             }
+
+                            // faces to search through (from gallery)
+                            UUID searchFaces[] = new UUID[result.length];
+                            for (int i=0; i < result.length; i++) {
+                                searchFaces[i] = result[0].faceId;
+                            }
+
+                            SimilarFace matches[] = faceServiceClient.findSimilar(
+                                    result[0].faceId,
+                                    searchFaces,
+                                    20,
+                                    FaceServiceClient.FindSimilarMatchMode.matchPerson
+                            );
+
                             publishProgress(
-                                   String.format("Detection Finished. %d face(s) detected",
-                                            result.length));
+                                   String.format("Detection Finished. %d face(s) matched",
+                                            matches.length));
                             return result;
                         } catch (Exception e) {
                             publishProgress("Detection failed");
