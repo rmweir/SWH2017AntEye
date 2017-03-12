@@ -129,7 +129,7 @@ private ProgressDialog detectionProgressDialog;
         paint.setAntiAlias(true);
         paint.setStyle(Paint.Style.STROKE);
         paint.setColor(Color.RED);
-        int stokeWidth = 2;
+        int stokeWidth = 11;
         paint.setStrokeWidth(stokeWidth); //come back
         if (faces != null) {
             for (Face face : faces) {

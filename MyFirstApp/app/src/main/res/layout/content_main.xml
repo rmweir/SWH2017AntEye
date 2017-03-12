@@ -117,13 +117,6 @@
             android:layout_height="wrap_content"
             android:text="@string/txc" />
     </RadioGroup>
-    <ImageView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:id="@+id/imageView1"
-        android:layout_above="@+id/button1"
-        tools:layout_editor_absoluteY="0dp"
-        tools:layout_editor_absoluteX="8dp" />
 
     <Button
 
@@ -142,6 +135,14 @@
         app:layout_constraintHorizontal_bias="0.502"
         android:layout_marginBottom="8dp"
         app:layout_constraintVertical_bias="0.73" />
+
+    <ImageView
+        android:id="@+id/imageView1"
+        android:layout_width="343dp"
+        android:layout_height="505dp"
+        android:layout_above="@+id/button1"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="0dp" />
 
 
 </android.support.constraint.ConstraintLayout>
