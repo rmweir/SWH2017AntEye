@@ -27,7 +27,7 @@ import android.provider.*;
 import java.io.IOException;
 import java.io.InputStream;
 
-
+import static android.R.id.edit;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private RadioButton contactButton;
     private Button button1;
 
+
 private ProgressDialog detectionProgressDialog;
    // private FaceServiceClient faceServiceClient = new FaceServiceRestClient("f18cc7f9302d43dd84b34fd25755882a");
 
@@ -47,9 +48,18 @@ private ProgressDialog detectionProgressDialog;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        final EditText editText = (EditText) findViewById(R.id.editText);
+
+        //Printout for radio button values(buttsex)
         View viewbutt = findViewById(R.id.rdioButtonSex);
+
         rdioButtonSex = (RadioGroup)viewbutt;
+        rdioButtonSex.check(R.id.femaleChild);
+        //Set for contact options
         contactChoice = (RadioGroup) findViewById(R.id.contactChoice);
+        contactChoice.check(R.id.radioButton4);
+
         button1 = (Button)findViewById(R.id.button1);
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,8 +72,11 @@ private ProgressDialog detectionProgressDialog;
                 int selectedId2 = contactChoice.getCheckedRadioButtonId();
                 contactChoice = (RadioGroup) findViewById(R.id.contactChoice);
                 contactButton = (RadioButton) findViewById(selectedId2);
-                String test = (String)radioSexButton.getText();
 
+
+                String test0 = editText.getText().toString();
+                String test = (String)radioSexButton.getText().toString().toLowerCase();
+                String filename = test0 + test;
                 Intent gallIntent = new Intent(Intent.ACTION_GET_CONTENT);
                 gallIntent.setType("image/*");
                 startActivityForResult(Intent.createChooser(gallIntent, "Select Picture"), PICK_IMAGE);
