@@ -26,8 +26,8 @@ import android.provider.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-
-
+import java.util.ArrayList;
+import java.util.UUID;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -136,35 +136,89 @@ private ProgressDialog detectionProgressDialog;
         return bitmap;
     }
 
-
-
     private void detectAndFrame(final Bitmap imageBitmap) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+        byte[] photoData = outputStream.toByteArray();
         ByteArrayInputStream inputStream =
-                new ByteArrayInputStream(outputStream.toByteArray());
-        AsyncTask<InputStream, String, Face[]> detectTask =
-                new AsyncTask<InputStream, String, Face[]>() {
+                new ByteArrayInputStream(photoData);
+        ByteArrayInputStream inputMissing =
+                new ByteArrayInputStream(photoData);
+        AsyncTask<InputStream, Object, SimilarFace[]> detectTask =
+                new AsyncTask<InputStream, Object, SimilarFace[]>() {
                     @Override
-                    protected Face[] doInBackground(InputStream... params) {
+                    protected SimilarFace[] doInBackground(InputStream... params) {
+                        // faces to search through (from gallery)
+                        ArrayList<UUID> searchFacesList = new ArrayList<UUID>();
+
+                        // For proof of concept purposes, fetch from a phony database
+                        // (image file on the disk)
+                        // In the future, possibly fetch from a government database of missing person
+                        InputStream missingPhoto = params[0]; // TODO: actually get from database
+
+                        Face missingFace = null;
+
+                        publishProgress("Searching Database...");
+
                         try {
-                            publishProgress("Detecting...");
-                            Face[] result = faceServiceClient.detect(
-                                    params[0],
-                                    true,         // returnFaceId
-                                    false,        // returnFaceLandmarks
-                                    null           // returnFaceAttributes: a string like "age, gender"
+                            Face[] missingFaces = faceServiceClient.detect(
+                                    missingPhoto,
+                                    true,
+                                    false,
+                                    null
                             );
 
-                            if (result == null) {
-                                publishProgress("Detection Finished. Nothing detected");
+                            if (missingFaces.length > 0) {
+                                missingFace = missingFaces[0];
+                            }
+                        } catch (Exception e) {
+                            publishProgress("Missing Person's Face Could not be Found.");
+                            return null; // Can't match if we are unable to detect a face.
+                        }
 
+                        // detect faces in each of the user's selected images
+                        for (int i = 1; i < params.length; i++) {
+                            try {
+                                publishProgress("Detecting...");
+                                Face[] result = faceServiceClient.detect(
+                                        params[i],
+                                        true,         // returnFaceId
+                                        false,        // returnFaceLandmarks
+                                        null          // returnFaceAttributes: a string like "age, gender"
+                                );
+
+                                if (result != null) { // Found a Face!
+                                    searchFacesList.add(result[0].faceId);
+                                    publishProgress("Found Face...", result);
+                                } else {
+                                    publishProgress("Detection Finished. Nothing detected");
+                                }
+                            } catch (Exception e) {
+                                publishProgress(String.format("Detection failed: %s", e.getMessage()));
+                            }
+                        }
+
+                        UUID[] searchFaces = searchFacesList.toArray(new UUID[0]);
+                        //UUID[] searchFaces = {};
+
+                        // find similar faces to our target person
+                        try {
+                            SimilarFace[] matches = faceServiceClient.findSimilar(
+                                    missingFace.faceId,
+                                    searchFaces,
+                                    20,
+                                    FaceServiceClient.FindSimilarMatchMode.matchPerson
+                            );
+
+                            // For now, tell the user
+                            // In the future, send data to a government agency (FBI, local police, etc)
+                            if (matches.length > 0) {
+                                publishProgress("Possible Matches Found! (Send to External)");
+                                return matches;
+                            } else {
+                                publishProgress("No Matches Found.");
                                 return null;
                             }
-                            publishProgress(
-                                   String.format("Detection Finished. %d face(s) detected",
-                                            result.length));
-                            return result;
                         } catch (Exception e) {
                             publishProgress("Detection failed");
                             return null;
@@ -177,20 +231,21 @@ private ProgressDialog detectionProgressDialog;
                     }
 
                     @Override
-                    protected void onProgressUpdate(String... progress) {
-                        detectionProgressDialog.setMessage(progress[0]);
+                    protected void onProgressUpdate(Object... progress) {
+                        if (progress.length > 1 && progress[1] != null) {
+                            ImageView imageView = (ImageView) findViewById(R.id.imageView1);
+                            imageView.setImageBitmap(drawFaceRectanglesOnBitmap(imageBitmap, (Face[]) progress[1]));
+                            imageBitmap.recycle();
+                        }
+                        detectionProgressDialog.setMessage((String) progress[0]);
                     }
 
                     @Override
-                    protected void onPostExecute(Face[] result) {
+                    protected void onPostExecute(SimilarFace[] result) {
                         detectionProgressDialog.dismiss();
-                        if (result == null) return;
-                        ImageView imageView = (ImageView)findViewById(R.id.imageView1);
-                        imageView.setImageBitmap(drawFaceRectanglesOnBitmap(imageBitmap, result));
-                        imageBitmap.recycle();
                     }
                 };
-        detectTask.execute(inputStream);
+        detectTask.execute(inputMissing, inputStream);
     }
 
 
